@@ -6,14 +6,14 @@ HEIGHT = 685
 BG_LIMIT = -1750
 SPEED = 8
 score = 0
-BG_SPEED = 5 + score * 2     # velocidade do fundo
+BG_SPEED = 5 + score * 2   
 
 DISTANCIA_MIN =60
 timer = 0
 dano_cooldown = 0
-bird = Actor('fexi1')
+player = Actor('fexi1')
 
-bird.pos = (155, HEIGHT // 2)
+player.pos = (155, HEIGHT // 2)
 frames = ['fexi1', 'fexi2', 'fexi3', 'fexi4']
 current_frame = 0
 
@@ -22,10 +22,10 @@ game_over = False
 moving_up = False
 moving_down = False
 
-bg_x = 0          # posição inicial do fundo
+bg_x = 0         
 bg_y = 0
 lives = 3 
-blocks =[]
+sharks =[]
 second =[]
 rocks =[]
 plants = []
@@ -35,11 +35,10 @@ bolhas_up = []
 def draw():
     screen.clear()
 
-    # Desenha duas cópias do fundo lado a lado
     screen.blit("sean", (bg_x,bg_y + BG_LIMIT))
     screen.blit("sean", (bg_x + WIDTH,bg_y + BG_LIMIT))
 
-    for b in blocks: b.draw()
+    for b in sharks: b.draw()
     for pr in plants_red: pr.draw()
     for p in plants: p.draw()
     for pg in plants_green: pg.draw()
@@ -48,7 +47,7 @@ def draw():
     for bolha in bolhas_up: bolha.draw()
 
     
-    bird.draw()
+    player.draw()
     
     draw_hearts()
 
@@ -71,7 +70,7 @@ def draw():
 
 def draw_hearts():
     for i in range(lives):
-        screen.blit("heart", (10 + i * 40, 30))  # 10px do topo, 40px entre os corações
+        screen.blit("heart", (10 + i * 40, 30)) 
 
 
 
@@ -90,20 +89,17 @@ def spawn_rocks():
 
     rock_types = ["rock1", "rock2", "rock3", "rock4", "rock5"]
 
-    # Só spawnar se estiver na parte certa do mapa
     if not (-1840 < BG_LIMIT + bg_y < -1700):
         return
     
-    # Posição X inicial, bem fora da tela
     start_x = WIDTH + random.randint(1760, 2400)
 
-    # Espaçamento horizontal entre as rochas
+
     dist_x = random.randint(250, 500)
 
-    # Quantidade de rochas no grupo
+  
     total = random.randint(2, 10)
 
-    # Altura de cada tipo
     y_por_tipo = {
         "rock1": HEIGHT - 20,
         "rock2": HEIGHT - 20,
@@ -122,10 +118,10 @@ def spawn_rocks():
         else:
             allowed_types = ["rock1", "rock2", "rock3", "rock4"]
 
-        # Escolhe o tipo permitido
+       
         rock_type = random.choice(allowed_types)
         
-        # Atualiza o contador
+    
         rock_spawn_count[rock_type] += 1
 
         y = y_por_tipo[rock_type]
@@ -133,26 +129,17 @@ def spawn_rocks():
 def spawn_plants():
     global plants, bg_y
     plants = []
-
     plant_types = ["1purple", "2purple", "3purple", "4purple"]
 
-    # Só spawnar se estiver na parte certa do mapa
     if not (-1840 < BG_LIMIT + bg_y < -1700):
         return
 
-    # Posição X inicial fora da tela
     start_x = WIDTH + random.randint(200, 500)
-
-    # Espaçamento horizontal
     dist_x = random.randint(58, 105)
-
-    # Quantidade de plantas no grupo
     total = random.randint(1, 5)
-
-    # Escolhe todos os tipos possíveis (nenhuma restrição aqui)
     allowed_types = plant_types  
 
-    # Spawns
+
     for i in range(total):
         spawn_x = start_x + i * dist_x
 
@@ -165,7 +152,7 @@ def spawn_plants_green():
     global plants_green, bg_y
     plants_green = []
 
-    # Só spawnar se estiver na parte certa do mapa
+   
     if not (-1840 < BG_LIMIT + bg_y < -1700):
         return
 
@@ -179,7 +166,7 @@ def spawn_plants_green():
 
         plant = Actor("green1", (spawn_x, y))
 
-        # cria as animações
+   
         plant.frames = ["green1", "green2", "green3", "green4"]
         plant.frame = 0
 
@@ -189,7 +176,7 @@ def spawn_plants_red():
     global plants_red, bg_y
     plants_red = []
 
-    # Só spawnar se estiver na parte certa do mapa
+
     if not (-1840 < BG_LIMIT + bg_y < -1700):
         return
 
@@ -206,16 +193,16 @@ def spawn_plants_red():
         plants_red.append(plant)
 
 
-def spawn_blocks():
-    global blocks, bg_y
+def spawn_sharks():
+    global sharks, bg_y
 
     cond = BG_LIMIT + bg_y
 
-    # Só spawnar se estiver no mapa dos inimigos
+
     if not (-1550 < cond < -200):
         return
     
-    blocks = []
+    sharks = []
     used = []
     min_dist = 120
 
@@ -232,31 +219,27 @@ def spawn_blocks():
                 used.append(y)
                 spawn_x = start_x + i * dist_x
 
-                block = None
+                shark = None
 
-                # -------------------------------
-                # ÁREA DOS TUBARÕES
-                # -------------------------------
+               
                 if -1550 < cond < -1000:
-                    block = Actor("tuba1", (spawn_x, y))
-                    block.frames = ["tuba1", "tuba2", "tuba3", "tuba4"]
-                    block.frame = 0
-                    block.speed = SPEED  # velocidade dos tubarões
+                    shark = Actor("tuba1", (spawn_x, y))
+                    shark.frames = ["tuba1", "tuba2", "tuba3", "tuba4"]
+                    shark.frame = 0
+                    shark.speed = SPEED  
 
-                # -------------------------------
-                # ÁREA DOS BLOCOS
-                # -------------------------------
+            
                 elif -1000 <= cond < -400:
-                    block = Actor("block", (spawn_x, y))
-                    block.frames = ["block","block","block","block"]
-                    block.frame = 0
-                    block.speed = SPEED + 10  # velocidade dos blocos
+                    shark = Actor("block", (spawn_x, y))
+                    shark.frames = ["block","block","block","block"]
+                    shark.frame = 0
+                    shark.speed = SPEED + 10  
 
-                # Se nada for válido, tenta outra posição
-                if block is None:
+                
+                if shark is None:
                     continue
 
-                blocks.append(block)
+                sharks.append(shark)
                 break
 
 
@@ -264,13 +247,11 @@ def spawn_blocks():
 def spawn_bolha_up():
     global bolhas_up
     
-    # Condição onde as bolhas devem começar a spawnar
     if not (-1840 < BG_LIMIT + bg_y < -650):
         return
 
-    # quantidade aleatória de bolhas
     total = random.randint(5, 8)
-
+   
     for _ in range(total):
         tentativas = 0
         
@@ -278,17 +259,17 @@ def spawn_bolha_up():
             x = random.randint(0, WIDTH)
             y = random.randint(0, HEIGHT)
 
-            # Verifica distância da nova bolha para as existentes
+          
             ok = True
             for b in bolhas_up:
                 dx = x - b.x
                 dy = y - b.y
                 dist = (dx*dx + dy*dy) ** 0.5
-                if dist < DISTANCIA_MIN:  # muito perto?
+                if dist < DISTANCIA_MIN:  
                     ok = False
                     break
 
-            if ok:   # posição válida, pode criar
+            if ok:   
                 bolha = Actor("bolha1", (x, y))
                 bolha.frames = ["bolha1", "bolha2", "bolha3", "bolha4"]
                 bolha.frame = 0
@@ -300,33 +281,28 @@ def spawn_bolha_up():
 
 def spawn_second():
     global second, bg_y
+
     if not (-1840 < BG_LIMIT + bg_y < -1000):
         return
 
     second = []
     used_y = []
     min_dist_y = 120
-
-    # Posição X inicial bem fora da tela (entre 80 e 200 px fora)
     start_x = WIDTH + random.randint(80, 200)
-
-    # Espaçamento horizontal entre os peixes
     dist_x = random.randint(90, 130)
-
-    # Número total de peixes no grupo
     total = random.randint(4, 8)
 
 
 
     for i in range(total):
-        # Encontrar Y com espaçamento mínimo
+       
         for _ in range(20):
             y = random.randint(40, HEIGHT - 40)
 
             if all(abs(y - u) >= min_dist_y for u in used_y):
                 used_y.append(y)
 
-                # Cada peixe fica atrás do outro (para a direita)
+                
                 spawn_x = start_x + i * dist_x
                 fish_type = ["fish_gold","fish_black","fish_blue"]
                 fish_choice = random.choice(fish_type)
@@ -341,10 +317,9 @@ def reset_game():
     game_over = False
     moving_up = False
     moving_down = False
-    bird.pos = (155, HEIGHT // 2)
-    spawn_blocks()
+    player.pos = (155, HEIGHT // 2)
+    spawn_sharks()
     spawn_second()
-    spawn_blocks()
     spawn_plants()
     spawn_plants_green()
     spawn_plants_red()
@@ -353,39 +328,34 @@ def reset_game():
     
 
 def update():
-    global game_over, score, moving_up, moving_down, bg_x,bg_y,blocks,second,rocks,plants,plants_green,plants_red,bolhas_up, current_frame,timer 
+    global game_over, score, moving_up, moving_down, bg_x,bg_y,sharks,second,rocks,plants,plants_green,plants_red,bolhas_up, current_frame,timer 
     global lives, dano_cooldown
     if game_over:
         return
 
-
- 
-
     if dano_cooldown > 0:
         dano_cooldown -= 1
 
-
     timer +=1
-  # move o fundo para a esquerda
+#move o fundo 
     bg_x -= BG_SPEED
-
-    # quando a primeira imagem sair, reinicia a posição
+    
     if bg_x <= -WIDTH:
         bg_x = 0
 
     if bg_y >= 1300:
         bg_y = 1300
 
-    # Movimento do personagem
+#movimento do personagem
     if moving_up:
         if bg_y < 1300:
 
-            bird.y -= 10
-            bird.angle = 0 
-            bird.angle += 5
+            player.y -= 10
+            player.angle = 0 
+            player.angle += 5
             
             bg_y += 10
-            for b in blocks: b.y +=10
+            for b in sharks: b.y +=10
             for s in second: s.y += 10
             for r in rocks: r.y +=10
             for p in plants: p.y +=10
@@ -394,12 +364,12 @@ def update():
             for bolha in bolhas_up: bolha.y += 10
         
     if moving_down:
-        bird.y += 10
-        bird.angle = 0 
+        player.y += 10
+        player.angle = 0 
         if BG_LIMIT + bg_y > -1750:
-            bird.angle -= 15
+            player.angle -= 15
             bg_y -= 10
-            for b in blocks: b.y -=10    
+            for b in sharks: b.y -=10    
             for s in second: s.y -=10 
             for r in rocks: r.y -=10      
             for p in plants: p.y -=10
@@ -407,9 +377,9 @@ def update():
             for pr in plants_red: pr.y -=10 
             for bolha in bolhas_up: bolha.y -= 10
    
-    # Movimento dos blocos
+#movimento dos blocos
     
-    for b in blocks:b.x -= b.speed
+    for b in sharks:b.x -= b.speed
 
 
     for s in second: s.x -= BG_SPEED + 1
@@ -418,23 +388,23 @@ def update():
     for pg in plants_green: pg.x -= BG_SPEED
     for pr in plants_red: pr.x -= BG_SPEED 
     for bolha in bolhas_up: bolha.x -= BG_SPEED 
-    # Quando todos os blocos passarem
-    if all(b.right < 0 for b in blocks):
+#quando todos os blocos passarem
+    if all(b.right < 0 for b in sharks):
         if bg_y > 230:
             score += 1
         if bg_y >= 900:
             score +=0.5       
-        spawn_blocks()
+        spawn_sharks()
     if all(s.right < 0 for s in second):spawn_second()
     if all(bolha.right < 250 for bolha in bolhas_up):spawn_bolha_up()
-    if bird.y >= 342:
+    if player.y >= 342:
         if all(r.right < 0 for r in rocks):spawn_rocks()
         if all(pr.right < 100 for pr in plants_red):spawn_plants_red()
         if all(p.right < 10 for p in plants):spawn_plants()
         if all(pg.right < 10 for pg in plants_green):spawn_plants_green()
    
    
-   #atulização de frame
+#atulização de frame
     for pg in plants_green:
         pg.frame += 0.08
         if pg.frame >= len(pg.frames):
@@ -442,7 +412,7 @@ def update():
 
         pg.image = pg.frames[int(pg.frame)]
    
-    for b in blocks:
+    for b in sharks:
         b.frame += 0.08
         if b.frame >= len(b.frames):
             b.frame = 0
@@ -450,29 +420,28 @@ def update():
         b.image = b.frames[int(b.frame)]
   
     for bolha in bolhas_up[:]:
-            # movimentação para cima
+           
             bolha.y -= bolha.speed
 
-            # animação
             bolha.frame = (bolha.frame + 0.08) % len(bolha.frames)
             bolha.image = bolha.frames[int(bolha.frame)]
 
-            # remove quando sai da tela
+           
             if bolha.y < -20:
                 bolhas_up.remove(bolha)
 
     
-    if timer % 8 == 0:  # muda o frame a cada 8 updates
+    if timer % 8 == 0:  
         current_frame = (current_frame + 1) % len(frames)
-        bird.image = frames[current_frame]
+        player.image = frames[current_frame]
 
 
     for r in rocks:
-        if bird.colliderect(r):
+        if player.colliderect(r):
 
             if dano_cooldown == 0:
                 lives -= 1
-                dano_cooldown = 60   # 1 segundo de invencibilidade
+                dano_cooldown = 60  
 
                 if lives <= 0:
                     game_over = True
@@ -481,30 +450,30 @@ def update():
 
 
 
-    for b in blocks:
+    for b in sharks:
 
-        # bird alinhado verticalmente?
-        colide_y = abs(bird.y - b.y) < (bird.height/2 + b.height/2)
+        
+        colide_y = abs(player.y - b.y) < (player.height/2 + b.height/2)
 
         if colide_y:
 
-            bloco_a_frente = b.x > bird.x
-            bate_frente = (bird.x + bird.width/2) > (b.x - b.width/2)
+            bloco_a_frente = b.x > player.x
+            bate_frente = (player.x + player.width/2) > (b.x - b.width/2)
 
             if bloco_a_frente and bate_frente:
 
-                # só tomar dano se cooldown == 0
+                
                 if dano_cooldown == 0:
                     lives -= 1
-                    dano_cooldown = 300  # ~0.5 segundos (se update = 60fps)
+                    dano_cooldown = 300  
 
                     if lives <= 0:
                         game_over = True
 
   
 
-    # BG_Limites verticais
-    bird.y = max(150, min(HEIGHT - 85, bird.y))
+#limites verticais
+    player.y = max(150, min(HEIGHT - 85, player.y))
 
 
 def on_key_down(key):
@@ -531,5 +500,5 @@ def on_key_up(key):
 def on_mouse_down(pos):
     print("\n=== CLIQUE DETECTADO ===")
     print(f"Posição do clique: {pos}")
-    print(f"Posição do personagem: x={bird.x}, y={bird.y}")
+    print(f"Posição do personagem: x={player.x}, y={player.y}")
     print(f"Posição do background: x={bg_x}, y={bg_y}")
