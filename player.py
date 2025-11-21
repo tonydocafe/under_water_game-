@@ -4,12 +4,12 @@ from pgzero.actor import Actor
 class Player:
 
     def __init__(self):
-        self.actor = Actor("fexi1")
+        self.actor = Actor("1_player")
         self.actor.pos = (155, 342.5)
 
-        self.images = ["fexi1", "fexi2", "fexi3", "fexi4"]
-        self.images_up = ["fexi1_up", "fexi2_up", "fexi3_up","fexi4_up"]
-        self.images_down = ["fexi1_down", "fexi2_down", "fexi3_down","fexi4_down"]
+        self.images = ["1_player", "2_player", "3_player", "4_player"]
+        self.images_up = ["1up_player", "2up_player", "3up_player","4up_player"]
+        self.images_down = ["1down_player", "2down_player", "3down_player","4down_player"]
         self.current_images = self.images
         self.frame = 0
         self.animation_speed = 5

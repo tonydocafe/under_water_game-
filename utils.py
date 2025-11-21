@@ -14,13 +14,17 @@ def draw_score(screen, score):
 
 def update_score(score, amount): return score + amount
 
-def check_collision(player, rocks, lives, cooldown):
+def check_collision(player, rocks, lives, cooldown, sound):
     
     if cooldown > 0:
         return lives, cooldown - 1
 
+
+    
     for r in rocks:
         if player.actor.colliderect(r):
+            sound.stop()
+            sound.play()    
             lives -= 1
             cooldown = 60  
             break
