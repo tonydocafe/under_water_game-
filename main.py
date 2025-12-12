@@ -1,7 +1,7 @@
 import pgzrun
 from player import Player
 from spawn import RocksSpawer, SharksSpawer
-from utils import draw_hearts, check_collision, draw_score,reset_game
+from utils import draw_hearts, check_collision, draw_score,reset_game,draw_hit
 from menu import Menu
 from bg_spawn import BubbleUpSpawer,FishesSpawer
 from plants_spawn import PlantsRedSpawer,PlantsGreenSpawer,PlantsPurpleSpawer
@@ -30,7 +30,9 @@ lives = 3
 dano_cooldown = 0
 game_over = False
 score = 0
-
+explosion = Actor("explosion")
+explosion.visible = False
+check_hit =  False
 def draw():
     screen.clear()
     screen.blit("sean", (bg_x, bg_y- 1750))
@@ -52,16 +54,22 @@ def draw():
     draw_hearts(screen, lives)
     draw_score(screen, score)
    
+    
+    if explosion.visible:
+        explosion.draw()
+
+
     if game_over:
         screen.draw.text("GAME OVER ", center=(WIDTH/2, HEIGHT/2), fontsize=64, color="red")
         screen.draw.text("\n Pressinone a tecla UP: jogar novamente\n\nPressione a tecla SPACE: ir paro o menu  ", center=(WIDTH//2, HEIGHT/4 - 40), fontsize=54, color="#FFFFFF")
 
 def update():
-    global bg_x, bg_y,lives, dano_cooldown, game_over,score
+    global bg_x, bg_y,lives, dano_cooldown, game_over,score,explosion,check_hit
 
     if game_over: return
     
     if menu.active: return
+
 
     bg_x -= bg_speed
     if bg_x <= -WIDTH: bg_x = 0
@@ -78,9 +86,14 @@ def update():
     if player.is_up_pressed(keyboard) and bg_y < 1300 :bg_y +=10
     if player.is_up_down(keyboard) and -1750 + bg_y > -1750 :bg_y -=10
 
-    lives, dano_cooldown = check_collision(player, rocks_spawner.rocks, lives, dano_cooldown,sounds.puch)
-    
-    lives, dano_cooldown = check_collision(player, sharks_spawner.sharks, lives, dano_cooldown,sounds.mordida)
+    lives, dano_cooldown,check_hit = check_collision(player, rocks_spawner.rocks, lives, dano_cooldown,sounds.puch,check_hit)
+    if check_hit:
+        show_explosion(player.actor.x, player.actor.y)
+        print("COLIDIU!")
+   
+
+
+    lives, dano_cooldown,check_hit = check_collision(player, sharks_spawner.sharks, lives, dano_cooldown,sounds.mordida,check_hit)
    
     score += rocks_spawner.update_score(score)
     score += sharks_spawner.update_score(score)
@@ -97,6 +110,16 @@ def on_mouse_down(pos):
     print(f"Posição do clique: {pos}")
 
     print(f"Posição do background: x={bg_x}, y={bg_y}")
+
+
+def hide_explosion():
+    explosion.visible = False
+
+def show_explosion(x, y):
+    explosion.pos = (x, y)
+    explosion.visible = True
+    clock.schedule(hide_explosion, 0.3) 
+
 
 
 def on_key_down(key):
