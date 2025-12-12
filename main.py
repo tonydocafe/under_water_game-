@@ -1,7 +1,7 @@
 import pgzrun
 from player import Player
 from spawn import RocksSpawer, SharksSpawer
-from utils import draw_hearts, check_collision, draw_score,reset_game,draw_hit
+from utils import draw_hearts, check_collision, draw_score,reset_game
 from menu import Menu
 from bg_spawn import BubbleUpSpawer,FishesSpawer
 from plants_spawn import PlantsRedSpawer,PlantsGreenSpawer,PlantsPurpleSpawer
@@ -94,7 +94,9 @@ def update():
 
 
     lives, dano_cooldown,check_hit = check_collision(player, sharks_spawner.sharks, lives, dano_cooldown,sounds.mordida,check_hit)
-   
+    if check_hit:
+        show_explosion(player.actor.x, player.actor.y)
+        print("COLIDIU!")
     score += rocks_spawner.update_score(score)
     score += sharks_spawner.update_score(score)
     if lives <= 0: game_over = True
@@ -123,7 +125,7 @@ def show_explosion(x, y):
 
 
 def on_key_down(key):
-    global bg_x, bg_y, lives, dano_cooldown, game_over, score, player, rocks_spawner,menu,game_started,sharks_spawner
+    global bg_x, bg_y, lives, dano_cooldown, game_over, score, player, rocks_spawner,menu,game_started,sharks_spawner,check_hit,red_p_spawner,bubble_spawner,greenp_spawner,purple_p_spawner,fish_spawner
 
     if  game_over:
         if key in (keys.UP, keys.DOWN):
@@ -142,6 +144,7 @@ def on_key_down(key):
             greenp_spawner = PlantsGreenSpawer()
             fish_spawner = FishesSpawer(0)
             purple_p_spawner = PlantsPurpleSpawer(0)
+            check_hit =  False
 
         if key == keys.SPACE :
             game_over = False

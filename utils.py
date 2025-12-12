@@ -1,8 +1,3 @@
-import random
-from pgzero.actor import Actor
-from player import Player
-from spawn import RocksSpawer
-
 
 def draw_hearts(screen, lives):
     for i in range(lives):
