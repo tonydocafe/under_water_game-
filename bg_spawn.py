@@ -58,6 +58,14 @@ class BubbleUpSpawer:
 
        
         self.bubbles = [b for b in self.bubbles if b.y > -200]
+    
+    def get_items(self):
+        return self.bubbles
+
+    def draw(self):
+        for b in self.bubbles:
+            b.pos = (int(b.x), int(b.y))
+            b.draw()
 
 
 class FishesSpawer:
@@ -90,3 +98,9 @@ class FishesSpawer:
         
         self.fishes = [f for f in self.fishes if f.x > -800]
 
+    def get_items(self):
+        return self.fishes
+
+    def draw(self):
+        for fish in self.fishes:
+            fish.draw()

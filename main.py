@@ -1,154 +1,168 @@
 import pgzrun
+
 from player import Player
 from spawn import RocksSpawer, SharksSpawer
-from utils import draw_hearts, check_collision, draw_score,reset_game
+from bg_spawn import BubbleUpSpawer, FishesSpawer
+from plants_spawn import (
+    PlantsRedSpawer,
+    PlantsGreenSpawer,
+    PlantsPurpleSpawer
+)
+
+from utils import draw_hearts, draw_score, reset_game
 from menu import Menu
-from bg_spawn import BubbleUpSpawer,FishesSpawer
-from plants_spawn import PlantsRedSpawer,PlantsGreenSpawer,PlantsPurpleSpawer
+from effects import explosion, show_explosion
+from game_logic import update_background, handle_collisions
+from game_state import GameState
 
 WIDTH = 750
 HEIGHT = 685
 
-bg_speed = 5
-bg_x = 0
-bg_y = 0
-
-fish_spawner = FishesSpawer(0)
-player = Player()
-rocks_spawner = RocksSpawer(0)
-sharks_spawner = SharksSpawer(0)
+# =========================
+# ESTADO CENTRAL
+# =========================
+state = GameState()
 menu = Menu()
-bubble_spawner = BubbleUpSpawer()
-greenp_spawner = PlantsGreenSpawer()
-red_p_spawner = PlantsRedSpawer(0)
-purple_p_spawner = PlantsPurpleSpawer(0)
+player = Player()
 
-#sounds.music.play()
 
-game_started = False
-lives = 3
-dano_cooldown = 0
-game_over = False
-score = 0
-explosion = Actor("explosion")
-explosion.visible = False
-check_hit =  False
-def draw():
-    screen.clear()
-    screen.blit("sean", (bg_x, bg_y- 1750))
-    screen.blit("sean", (bg_x + WIDTH,bg_y - 1750))
+# =========================
+# FÁBRICA DE SPAWNERS
+# =========================
+def create_spawners():
+    return {
+        "fish": FishesSpawer(0),
+        "rocks": RocksSpawer(0),
+        "sharks": SharksSpawer(0),
+        "bubbles": BubbleUpSpawer(),
+        "green_plants": PlantsGreenSpawer(),
+        "red_plants": PlantsRedSpawer(0),
+        "purple_plants": PlantsPurpleSpawer(0),
+    }
 
-    if not game_started:
-        menu.draw(screen)
-        return
 
-    for f in fish_spawner.fishes: f.draw()
-    for r in red_p_spawner.redplants: r.draw()
+spawners = create_spawners()
+
+
+# =========================
+# DRAW
+# =========================
+def draw_background():
+    screen.blit("sean", (state.bg_x, state.bg_y - 1750))
+    screen.blit("sean", (state.bg_x + WIDTH, state.bg_y - 1750))
+
+
+def draw_entities():
+    for spawner in spawners.values():
+        spawner.draw()
+
     player.draw()
-    for s in sharks_spawner.sharks: s.draw()
-    for pu  in purple_p_spawner.purples: pu.draw()
-    for r in rocks_spawner.rocks: r.draw()
-    for b in bubble_spawner.bubbles: b.draw()
-    for pg in greenp_spawner.plants: pg.draw()
-    
-    draw_hearts(screen, lives)
-    draw_score(screen, score)
-   
-    
+
+
+def draw_ui():
+    draw_hearts(screen, state.lives)
+    draw_score(screen, state.score)
+
     if explosion.visible:
         explosion.draw()
 
+    if state.game_over:
+        screen.draw.text(
+            "GAME OVER",
+            center=(WIDTH / 2, HEIGHT / 2),
+            fontsize=64,
+            color="red",
+        )
+        screen.draw.text(
+            "\nPressione UP: jogar novamente\n\nPressione SPACE: menu",
+            center=(WIDTH // 2, HEIGHT // 4 - 40),
+            fontsize=54,
+            color="#FFFFFF",
+        )
 
-    if game_over:
-        screen.draw.text("GAME OVER ", center=(WIDTH/2, HEIGHT/2), fontsize=64, color="red")
-        screen.draw.text("\n Pressinone a tecla UP: jogar novamente\n\nPressione a tecla SPACE: ir paro o menu  ", center=(WIDTH//2, HEIGHT/4 - 40), fontsize=54, color="#FFFFFF")
+
+def draw():
+    screen.clear()
+    draw_background()
+
+    if not state.game_started:
+        menu.draw(screen)
+        return
+
+    draw_entities()
+    draw_ui()
+
+
+# =========================
+# UPDATE
+# =========================
+def update_spawners_all():
+    for spawner in spawners.values():
+        spawner.update(state.bg_y, keyboard)
+
+
+def update_player_movement():
+    player.update(keyboard)
+
+    if player.is_up_pressed(keyboard) and state.bg_y < 1300:
+        state.bg_y += 10
+
+    if player.is_up_down(keyboard) and -1750 + state.bg_y > -1750:
+        state.bg_y -= 10
+
 
 def update():
-    global bg_x, bg_y,lives, dano_cooldown, game_over,score,explosion,check_hit
+    if state.game_over or menu.active:
+        return
 
-    if game_over: return
-    
-    if menu.active: return
+    state.bg_x = update_background(state.bg_x, state.bg_speed, WIDTH)
 
+    update_spawners_all()
+    update_player_movement()
 
-    bg_x -= bg_speed
-    if bg_x <= -WIDTH: bg_x = 0
+    state.lives, state.dano_cooldown, state.check_hit = handle_collisions(
+        player,
+        [
+            (spawners["rocks"].get_items(), sounds.puch),
+            (spawners["sharks"].get_items(), sounds.mordida),
+        ],
+        state.lives,
+        state.dano_cooldown,
+        state.check_hit,
+        show_explosion,
+    )
 
-    fish_spawner.update(bg_y,keyboard)  
-    sharks_spawner.update(bg_y,keyboard)
-    player.update(keyboard)
-    rocks_spawner.update(bg_y,keyboard)
-    bubble_spawner.update(bg_y,keyboard)
-    greenp_spawner.update(bg_y,keyboard)
-    red_p_spawner.update(bg_y,keyboard)
-    purple_p_spawner.update(bg_y,keyboard)
+    state.score += spawners["rocks"].update_score(state.score)
+    state.score += spawners["sharks"].update_score(state.score)
 
-    if player.is_up_pressed(keyboard) and bg_y < 1300 :bg_y +=10
-    if player.is_up_down(keyboard) and -1750 + bg_y > -1750 :bg_y -=10
-
-    lives, dano_cooldown,check_hit = check_collision(player, rocks_spawner.rocks, lives, dano_cooldown,sounds.puch,check_hit)
-    if check_hit:
-        show_explosion(player.actor.x, player.actor.y)
-        print("COLIDIU!")
-   
+    if state.lives <= 0:
+        state.game_over = True
 
 
-    lives, dano_cooldown,check_hit = check_collision(player, sharks_spawner.sharks, lives, dano_cooldown,sounds.mordida,check_hit)
-    if check_hit:
-        show_explosion(player.actor.x, player.actor.y)
-        print("COLIDIU!")
-    score += rocks_spawner.update_score(score)
-    score += sharks_spawner.update_score(score)
-    if lives <= 0: game_over = True
-
+# =========================
+# INPUT
+# =========================
 def on_mouse_down(pos):
-    global game_started
-
     result = menu.on_mouse_down(pos)
-    if result == "start": game_started = True
-    elif result == "music": pass  
-
-    print("\n=== CLIQUE DETECTADO ===")
-    print(f"Posição do clique: {pos}")
-
-    print(f"Posição do background: x={bg_x}, y={bg_y}")
+    if result == "start":
+        state.game_started = True
 
 
-def hide_explosion():
-    explosion.visible = False
+def restart_game():
+    global player, spawners
 
-def show_explosion(x, y):
-    explosion.pos = (x, y)
-    explosion.visible = True
-    clock.schedule(hide_explosion, 0.3) 
+    reset = reset_game()
+    state.apply_reset(reset)
 
+    player = Player()
+    spawners = create_spawners()
 
 
 def on_key_down(key):
-    global bg_x, bg_y, lives, dano_cooldown, game_over, score, player, rocks_spawner,menu,game_started,sharks_spawner,check_hit,red_p_spawner,bubble_spawner,greenp_spawner,purple_p_spawner,fish_spawner
+    if state.game_over and key in (keys.UP, keys.DOWN):
+        restart_game()
 
-    if  game_over:
-        if key in (keys.UP, keys.DOWN):
-            reset = reset_game()
-            bg_x = reset["bg_x"]
-            bg_y = reset["bg_y"]
-            lives = reset["lives"]
-            dano_cooldown = reset["dano_cooldown"]
-            game_over = reset["game_over"]
-            score = reset["score"]
-            player = Player()
-            red_p_spawner = PlantsRedSpawer(0)
-            rocks_spawner = RocksSpawer(0)
-            sharks_spawner = SharksSpawer(0)
-            bubble_spawner = BubbleUpSpawer()
-            greenp_spawner = PlantsGreenSpawer()
-            fish_spawner = FishesSpawer(0)
-            purple_p_spawner = PlantsPurpleSpawer(0)
-            check_hit =  False
-
-        if key == keys.SPACE :
-            game_over = False
-            game_started = False
-            menu.active = True
-        return
-
+    if state.game_over and key == keys.SPACE:
+        state.game_over = False
+        state.game_started = False
+        menu.active = True
